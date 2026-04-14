@@ -2,7 +2,10 @@ from datetime import date, datetime, timezone
 
 import pytest
 
-from github_popularity_scoring.domain.entities import Repository, RepositorySearchCriteria
+from github_popularity_scoring.domain.entities import (
+    Repository,
+    RepositorySearchCriteria,
+)
 from github_popularity_scoring.domain.scoring import PopularityScorer
 from github_popularity_scoring.service.repositories import SearchRepositoriesUseCase
 
@@ -28,6 +31,7 @@ def build_repository(
         forks=forks,
         updated_at=updated_at,
         language="Python",
+        html_url="https://example.com",
     )
 
 @pytest.mark.asyncio
