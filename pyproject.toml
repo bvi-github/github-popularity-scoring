@@ -12,6 +12,11 @@ dependencies = [
     "uvicorn>=0.44.0",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest"
+]
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
