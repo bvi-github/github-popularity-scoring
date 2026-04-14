@@ -1,14 +1,17 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from github_popularity_scoring.domain.entities import Repository
 from github_popularity_scoring.domain.scoring import PopularityScorer
+
 
 def build_repository(stars: int, forks: int, updated_at: datetime) -> Repository:
     return Repository(
         name="demo",
         stars=stars,
         forks=forks,
+        language="python",
         updated_at=updated_at,
+        html_url="https://example.com",
     )
 
 def test_score_increases_for_more_stars_and_forks() -> None:
