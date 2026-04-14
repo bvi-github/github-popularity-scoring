@@ -22,7 +22,7 @@ class ScoringStrategy(Protocol):
         """
         ...
 
-class BalancedScoringStrategy:
+class BalancedScoringStrategy(ScoringStrategy):
     """
     Default strategy with balanced weights for stars, forks, and recency.
         Score formula:
