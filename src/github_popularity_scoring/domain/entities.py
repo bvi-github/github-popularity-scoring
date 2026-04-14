@@ -11,6 +11,8 @@ class Repository:
     updated_at: datetime
     stars: int
     forks: int
+    html_url: str
+
 
 @dataclass
 class RepositorySearchCriteria:
@@ -19,7 +21,8 @@ class RepositorySearchCriteria:
     limit: int = 10
 
     def __post_init__(self):
-        object.__setattr__(self,'language',self.language.strip())
+        object.__setattr__(self, "language", self.language.strip())
+
 
 @dataclass
 class ScoredRepository:
