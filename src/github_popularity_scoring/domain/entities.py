@@ -7,7 +7,7 @@ from datetime import date, datetime
 @dataclass
 class Repository:
     name: str
-    language: str
+    language: str | None
     updated_at: datetime
     stars: int
     forks: int
