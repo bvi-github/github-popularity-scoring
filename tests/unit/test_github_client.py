@@ -13,7 +13,7 @@ from github_popularity_scoring.infrastructure.github.client import (
 async def test_search_repositories_maps_github_response() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path == "/search/repositories"
-        assert request.url.params["q"] == 'language:"Python" created_at:>=2025-01-01'
+        assert request.url.params["q"] == 'language:"Python" created:>=2025-01-01'
         assert request.url.params["sort"] == "stars"
         assert request.url.params["order"] == "desc"
         assert request.url.params["per_page"] == "100"  # TODO: get it from settings
@@ -50,7 +50,7 @@ async def test_search_repositories_maps_github_response() -> None:
             criteria=RepositorySearchCriteria(
                 language="Python",
                 created_after=date(2025, 1, 1),
-            )
+            ),
         )
 
         assert len(result) == 1

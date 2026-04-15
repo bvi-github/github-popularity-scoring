@@ -98,5 +98,5 @@ class GitHubRepositoryQueryBuilder:
     def build(criteria: RepositorySearchCriteria) -> str:
         return (
             f'language:"{criteria.language}" '
-            f"created_at:>={criteria.created_after.isoformat()}"
+            f"created:>={criteria.created_after.isoformat()}"
         )
