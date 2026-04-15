@@ -24,7 +24,7 @@ router = APIRouter(tags=["repositories"], prefix="/api/v1/repositories")
 
 
 @router.get(
-    path="/popularity/",
+    path="/popularity",
     response_model=SearchRepositoriesResponse,
 )
 async def get_repository_popularity(
