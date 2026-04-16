@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from datetime import date
-from importlib.metadata import version
+
+from github_popularity_scoring.version import __version__
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, status
@@ -92,8 +93,8 @@ def create_app(
 
     app = FastAPI(
         title="GitHub Popularity Scoring API",
-        version=version("github-popularity-scoring"),
-        lifespan=create_lifespan(use_case=use_case),
+        version=__version__,
+        lifespan=create_lifespan(use_case=use_case, settings=settings),
     )
 
     app.include_router(router)
