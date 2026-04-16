@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     github_timeout_seconds: float = 10.0
     default_result_limit: int = Field(default=10, ge=1, le=100)
     max_result_limit: int = Field(default=50, ge=1, le=100)
-    scoring_strategy: Literal["balanced"] = "balanced"
+    scoring_strategy: Literal["balanced", "momentum"] = "balanced"
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

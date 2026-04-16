@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from math import log1p, exp
 
-from typing import Protocol, Callable
+from typing import Protocol, Callable, cast
 
 from github_popularity_scoring.domain.entities import Repository
 
@@ -43,6 +43,28 @@ class BalancedScoringStrategy(ScoringStrategy):
         recency_component = exp(-days_since_update / 365.0) * 20.0
 
         return round(stars_component + forks_component + recency_component, 2)
+
+class MomentumFocusedScoringStrategy(ScoringStrategy):
+    """
+    Momentum-focused strategy that favors repositories which are both popular and recently active.
+        Score formula:
+            score = (log(1 + stars) ** 0.6)
+                    * (log(1 + forks) ** 0.4)
+                    / ((1 + days_since_update) ** 0.5)
+
+        - stars count more than forks through the larger exponent
+        - recent updates have a stronger effect because it affects the whole score
+        - power-law decay - more aggressive penalization at first.
+    """
+    def score(self, repository: Repository, now: datetime) -> float:
+        days_since_update = max((now - repository.updated_at).days, 0)
+
+        stars_component = cast(float, log1p(max(repository.stars, 0)) ** 0.6)
+        forks_component = cast(float, log1p(max(repository.forks, 0)) ** 0.4)
+        recency_component = cast(float, (1 + days_since_update) ** 0.5)
+
+        return round(stars_component * forks_component/recency_component, 2)
+
 
 class PopularityScorer:
     """
