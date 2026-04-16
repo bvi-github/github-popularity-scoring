@@ -7,6 +7,7 @@ from github_popularity_scoring.domain.entities import RepositorySearchCriteria
 from github_popularity_scoring.infrastructure.github.client import (
     GitHubRepositorySearchClient,
 )
+from github_popularity_scoring.infrastructure.github.settings import Settings
 
 
 @pytest.mark.asyncio
@@ -16,7 +17,7 @@ async def test_search_repositories_maps_github_response() -> None:
         assert request.url.params["q"] == 'language:"Python" created:>=2025-01-01'
         assert request.url.params["sort"] == "stars"
         assert request.url.params["order"] == "desc"
-        assert request.url.params["per_page"] == "100"  # TODO: get it from settings
+        assert request.url.params["per_page"] == "10"
 
         return httpx.Response(
             status_code=200,
@@ -44,12 +45,14 @@ async def test_search_repositories_maps_github_response() -> None:
     ) as http_client:
         client = GitHubRepositorySearchClient(
             http_client=http_client,
+            settings=Settings(),
         )
 
         result = await client.search_repositories(
             criteria=RepositorySearchCriteria(
                 language="Python",
                 created_after=date(2025, 1, 1),
+                limit=10,
             ),
         )
 
@@ -74,6 +77,7 @@ async def test_search_repositories_error_wrapper() -> None:
     ) as http_client:
         client = GitHubRepositorySearchClient(
             http_client=http_client,
+            settings=Settings(),
         )
 
         with pytest.raises(Exception) as exc:

@@ -13,6 +13,7 @@ from github_popularity_scoring.infrastructure.github.dto import (
     GitHubRepositoryDTO,
     GitHubSearchRepositoriesResponseDTO,
 )
+from github_popularity_scoring.infrastructure.github.settings import Settings
 from github_popularity_scoring.service.repositories import RepositorySearchPort
 
 
@@ -21,8 +22,9 @@ class GitHubRepositorySearchClient(RepositorySearchPort):
     Implementation of GitHub Repository Search client
     """
 
-    def __init__(self, http_client: httpx.AsyncClient):
+    def __init__(self, http_client: httpx.AsyncClient, settings: Settings):
         self._http_client: httpx.AsyncClient = http_client
+        self._settings: Settings = settings
 
     async def search_repositories(
         self, criteria: RepositorySearchCriteria
@@ -32,7 +34,7 @@ class GitHubRepositorySearchClient(RepositorySearchPort):
         query_builder = GitHubRepositoryQueryBuilder
 
         query = query_builder.build(criteria)
-        per_page = 100  # TODO: get from settings
+        per_page = min(criteria.limit, 100)
 
         try:
             response = await self._http_client.get(

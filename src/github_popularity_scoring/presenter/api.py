@@ -10,9 +10,10 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, status
 from github_popularity_scoring.domain.entities import RepositorySearchCriteria
 from github_popularity_scoring.domain.exceptions import ValidationError
 from github_popularity_scoring.infrastructure.exceptions import ExternalServiceError
+from github_popularity_scoring.infrastructure.github.settings import Settings
 from github_popularity_scoring.presenter.dependencies import (
     create_lifespan,
-    get_search_use_case,
+    get_search_use_case, get_runtime_settings,
 )
 from github_popularity_scoring.presenter.schemas import (
     RepositoryPopularityResponse,
@@ -38,15 +39,20 @@ async def get_repository_popularity(
         Query(description="Programming language to search for"),
     ],
     use_case: Annotated[SearchRepositoriesUseCase, Depends(get_search_use_case)],
+    settings: Annotated[Settings, Depends(get_runtime_settings)],
     limit: Annotated[
         int | None,
         Query(ge=1, description="Maximum repositories to return"),
     ] = None,
 ) -> SearchRepositoriesResponse:
 
-    resolved_limit = limit or 10  # TODO: get default limit from settings
+    resolved_limit = limit or settings.default_result_limit
 
-    # TODO: set a cap for a limit (from settings?), test it, raise an error if greater
+    if resolved_limit > settings.max_result_limit:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"limit must not be greater than ({settings.max_result_limit})",
+        )
 
     request_model = SearchRepositoriesRequest(
         created_after=created_after,
@@ -89,6 +95,7 @@ async def get_repository_popularity(
 
 def create_app(
     use_case: SearchRepositoriesUseCase | None = None,
+    settings: Settings| None = None,
 ) -> FastAPI:
 
     app = FastAPI(
