@@ -8,6 +8,7 @@ from github_popularity_scoring.domain.entities import (
     RepositorySearchCriteria,
 )
 from github_popularity_scoring.domain.scoring import PopularityScorer
+from github_popularity_scoring.infrastructure.github.settings import Settings
 from github_popularity_scoring.presenter.api import create_app
 from github_popularity_scoring.presenter.schemas import SearchRepositoriesResponse
 from github_popularity_scoring.service.repositories import (
@@ -49,7 +50,12 @@ def test_http_endpoint_returns_scored_repositories() -> None:
         ),
     )
 
-    app = create_app(use_case=use_case)
+    app = create_app(
+        use_case=use_case,
+        settings=Settings(
+            scoring_strategy="momentum"
+        )
+    )
 
     with TestClient(app) as client:
         response = client.get(
