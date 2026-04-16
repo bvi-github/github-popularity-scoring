@@ -6,13 +6,19 @@ from typing import cast
 import httpx
 from fastapi import FastAPI, Request
 
-from github_popularity_scoring.domain.scoring import BalancedScoringStrategy, PopularityScorer, ScoringStrategy
+from github_popularity_scoring.domain.enums_ import ScoringStrategyName
+from github_popularity_scoring.domain.scoring import BalancedScoringStrategy, PopularityScorer, ScoringStrategy, \
+    MomentumFocusedScoringStrategy
 from github_popularity_scoring.infrastructure.github.client import (
     GitHubRepositorySearchClient,
 )
 from github_popularity_scoring.infrastructure.github.settings import Settings, get_settings
 from github_popularity_scoring.service.repositories import SearchRepositoriesUseCase
 
+SCORING_STRATEGIES: dict[ScoringStrategyName, ScoringStrategy] = {
+    ScoringStrategyName.BALANCED: BalancedScoringStrategy(),
+    ScoringStrategyName.MOMENTUM: MomentumFocusedScoringStrategy(),
+}
 
 def build_http_client(settings: Settings) -> httpx.AsyncClient:
     headers = {
@@ -44,10 +50,7 @@ def build_search_use_case(http_client: httpx.AsyncClient, settings: Settings) ->
     return repository_search_use_case
 
 def build_scoring_strategy(settings: Settings) -> ScoringStrategy:
-    strategies: dict[str, ScoringStrategy] = {
-        "balanced": BalancedScoringStrategy(),
-    }
-    return strategies[settings.scoring_strategy]
+    return SCORING_STRATEGIES[settings.scoring_strategy]
 
 def create_lifespan(
     use_case: SearchRepositoriesUseCase | None = None,
