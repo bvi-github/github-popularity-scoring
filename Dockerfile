@@ -1,5 +1,7 @@
 FROM python:3.12-slim AS builder
 
+ENV UV_LINK_MODE=copy
+
 WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -28,4 +30,5 @@ USER appuser
 
 EXPOSE 8000
 
+ENV PYTHONPATH=/app/src
 CMD ["python", "-m", "uvicorn", "github_popularity_scoring.main:app", "--host", "0.0.0.0", "--port", "8000"]
