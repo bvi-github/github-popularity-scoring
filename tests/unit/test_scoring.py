@@ -1,7 +1,12 @@
 from datetime import datetime, timedelta, timezone
 
+from math import isclose
+
 from github_popularity_scoring.domain.entities import Repository
-from github_popularity_scoring.domain.scoring import PopularityScorer, MomentumFocusedScoringStrategy
+from github_popularity_scoring.domain.scoring import (
+    MomentumFocusedScoringStrategy,
+    PopularityScorer,
+)
 
 
 def build_repository(stars: int, forks: int, updated_at: datetime) -> Repository:
@@ -31,6 +36,20 @@ def test_score_increases_for_more_stars_and_forks() -> None:
     )
 
     assert scorer.score(larger_repo) > scorer.score(smaller_repo)
+
+
+def test_balanced_scoring_strategy_returns_expected_score() -> None:
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    scorer = PopularityScorer(now_provider=lambda: now)
+
+    repository = build_repository(
+        stars=10,
+        forks=2,
+        updated_at=now - timedelta(days=30),
+    )
+
+    score: float = scorer.score(repository)
+    assert isclose(score, 33.71, rel_tol=1e-3)
 
 
 def test_score_increases_for_more_recent_update() -> None:
@@ -71,3 +90,34 @@ def test_score_momentum_focused_scoring_strategy() -> None:
     )
 
     assert scorer.score(fresh_repo) > scorer.score(stale_repo)
+
+
+def test_momentum_focused_scoring_strategy_returns_expected_score() -> None:
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    scorer = PopularityScorer(
+        strategy=MomentumFocusedScoringStrategy(),
+        now_provider=lambda: now,
+    )
+
+    repository = build_repository(
+        stars=10,
+        forks=2,
+        updated_at=now - timedelta(days=30),
+    )
+
+    score: float = scorer.score(repository)
+    assert isclose(score, 0.32, rel_tol=1e-3)
+
+
+def test_balanced_scoring_strategy_clamps_negative_counts_and_future_updates() -> None:
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    scorer = PopularityScorer(now_provider=lambda: now)
+
+    repository = build_repository(
+        stars=-10,
+        forks=-2,
+        updated_at=now + timedelta(days=30),
+    )
+
+    score: float = scorer.score(repository)
+    assert isclose(score, 20.0, rel_tol=1e-3)
