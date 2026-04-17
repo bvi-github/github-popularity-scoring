@@ -1,6 +1,6 @@
 [project]
 name = "github-popularity-scoring"
-version = "0.6.0"
+version = "0.6.1"
 description = "FastAPI backend that scores GitHub repositories"
 requires-python = ">=3.12"
 dependencies = [
