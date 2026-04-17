@@ -173,7 +173,7 @@ uv sync
 Run the API:
 
 ```bash
-uv run uvicorn github_popularity_scoring.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn --app-dir src github_popularity_scoring.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Open the interactive API docs:
