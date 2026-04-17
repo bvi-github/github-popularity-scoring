@@ -17,7 +17,6 @@ from github_popularity_scoring.presenter.dependencies import (
 )
 from github_popularity_scoring.presenter.schemas import (
     RepositoryPopularityResponse,
-    SearchRepositoriesRequest,
     SearchRepositoriesResponse,
 )
 from github_popularity_scoring.service.repositories import SearchRepositoriesUseCase
@@ -36,38 +35,20 @@ async def get_repository_popularity(
     ],
     language: Annotated[
         str,
-        Query(description="Programming language to search for"),
+        Query(description="Programming language to search for", min_length=1, max_length=100),
     ],
     use_case: Annotated[SearchRepositoriesUseCase, Depends(get_search_use_case)],
     settings: Annotated[Settings, Depends(get_runtime_settings)],
-    limit: Annotated[
-        int | None,
-        Query(ge=1, description="Maximum repositories to return"),
-    ] = None,
 ) -> SearchRepositoriesResponse:
 
-    resolved_limit = limit or settings.default_result_limit
-
-    if resolved_limit > settings.max_result_limit:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=f"limit must not be greater than ({settings.max_result_limit})",
-        )
-
-    request_model = SearchRepositoriesRequest(
-        created_after=created_after,
-        language=language,
-        limit=resolved_limit,
-    )
 
     criteria = RepositorySearchCriteria(
-        created_after=request_model.created_after,
-        language=request_model.language,
-        limit=request_model.limit,
+        created_after=created_after,
+        language=language,
     )
 
     try:
-        scored_repositories = await use_case.execute(criteria)
+        scored_results = await use_case.execute(criteria, settings.result_limit)
     except ValidationError as exp:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exp)
@@ -88,8 +69,10 @@ async def get_repository_popularity(
                 updated_at=item.repository.updated_at,
                 popularity_score=item.popularity_score,
             )
-            for item in scored_repositories
+            for item in scored_results.repositories
         ],
+        total_count=scored_results.total_count,
+        repositories_scanned=scored_results.repositories_scanned,
     )
 
 
