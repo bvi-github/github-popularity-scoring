@@ -17,7 +17,7 @@ async def test_search_repositories_maps_github_response() -> None:
         assert request.url.params["q"] == 'language:"Python" created:>=2025-01-01'
         assert request.url.params["sort"] == "stars"
         assert request.url.params["order"] == "desc"
-        assert request.url.params["per_page"] == "10"
+        assert request.url.params["per_page"] == "100"
 
         return httpx.Response(
             status_code=200,
@@ -52,13 +52,14 @@ async def test_search_repositories_maps_github_response() -> None:
             criteria=RepositorySearchCriteria(
                 language="Python",
                 created_after=date(2025, 1, 1),
-                limit=10,
             ),
         )
 
-        assert len(result) == 1
-        assert result[0].name == "demo"
-        assert result[0].stars == 10
+        repos_list = result.repositories
+
+        assert len(repos_list) == 1
+        assert repos_list[0].name == "demo"
+        assert repos_list[0].stars == 10
 
 
 @pytest.mark.asyncio

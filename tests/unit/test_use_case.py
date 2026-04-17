@@ -4,23 +4,27 @@ import pytest
 
 from github_popularity_scoring.domain.entities import (
     Repository,
-    RepositorySearchCriteria,
+    RepositorySearchCriteria, RepositorySearchResult,
 )
 from github_popularity_scoring.domain.exceptions import ValidationError
 from github_popularity_scoring.domain.scoring import PopularityScorer
-from github_popularity_scoring.service.repositories import SearchRepositoriesUseCase
+from github_popularity_scoring.service.repositories import RepositorySearchPort, SearchRepositoriesUseCase
 
 
-class FakeRepositorySearch:
+class FakeRepositorySearch(RepositorySearchPort):
     def __init__(self, repositories: list[Repository]):
         self._repositories: list[Repository] = repositories
         self.criteria: RepositorySearchCriteria | None = None
 
     async def search_repositories(
         self, criteria: RepositorySearchCriteria
-    ) -> list[Repository]:
+    ) -> RepositorySearchResult:
         self.criteria = criteria
-        return self._repositories
+        return RepositorySearchResult(
+            repositories=self._repositories,
+            total_count=len(self._repositories),
+            next_cursor=None,
+        )
 
 
 def build_repository(
@@ -72,17 +76,20 @@ async def test_use_case_scores_sorts_and_limits_results() -> None:
     )
 
     search_criteria = RepositorySearchCriteria(
-        language="Python", created_after=date(2025, 1, 1), limit=2
+        language="Python",
+        created_after=date(2025, 1, 1),
     )
 
-    result = await use_case.execute(criteria=search_criteria)
+    result = await use_case.execute(
+        criteria=search_criteria,
+        result_limit=2,
+    )
 
     assert repository_search.criteria == RepositorySearchCriteria(
         created_after=date(2025, 1, 1),
         language="Python",
-        limit=2,
     )
-    assert [repo.repository.name for repo in result] == ["recent-popular", "older"]
+    assert [repo.repository.name for repo in result.repositories] == ["recent-popular", "older"]
 
 
 @pytest.mark.asyncio
@@ -94,8 +101,10 @@ async def test_use_case_reject_blank_language():
     with pytest.raises(ValidationError, match="Language not provided"):
         _ = await use_case.execute(
             criteria=RepositorySearchCriteria(
-                language="   ", created_after=date(2025, 1, 1), limit=1
-            )
+                language="   ",
+                created_after=date(2025, 1, 1),
+            ),
+            result_limit=2,
         )
 
 
@@ -108,20 +117,8 @@ async def test_use_case_reject_future_created_after():
     with pytest.raises(ValidationError, match="created_after must not be in future"):
         _ = await use_case.execute(
             criteria=RepositorySearchCriteria(
-                language="python", created_after=date(2999, 1, 1), limit=1
-            )
-        )
-
-
-@pytest.mark.asyncio
-async def test_use_case_reject_limit_below_one():
-    use_case = SearchRepositoriesUseCase(
-        repository_search=FakeRepositorySearch([]), scorer=PopularityScorer()
-    )
-
-    with pytest.raises(ValidationError, match="Limit must be greater than 0"):
-        _ = await use_case.execute(
-            criteria=RepositorySearchCriteria(
-                language="python", created_after=date(2014, 1, 1), limit=0
-            )
+                language="python",
+                created_after=date(2999, 1, 1),
+            ),
+            result_limit=2,
         )

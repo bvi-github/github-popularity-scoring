@@ -1,11 +1,10 @@
 from datetime import date, datetime, timezone
 
 from fastapi.testclient import TestClient
-from pydantic import BaseModel
 
 from github_popularity_scoring.domain.entities import (
     Repository,
-    RepositorySearchCriteria,
+    RepositorySearchCriteria, RepositorySearchResult,
 )
 from github_popularity_scoring.domain.scoring import PopularityScorer
 from github_popularity_scoring.infrastructure.github.settings import Settings
@@ -20,15 +19,14 @@ from github_popularity_scoring.service.repositories import (
 class FakeRepositorySearch(RepositorySearchPort):
     async def search_repositories(
         self, criteria: RepositorySearchCriteria
-    ) -> list[Repository]:
+    ) -> RepositorySearchResult:
 
         assert criteria == RepositorySearchCriteria(
             created_after=date(2025, 1, 1),
             language="Python",
-            limit=1,
         )
 
-        return [
+        repositories: list[Repository] = [
             Repository(
                 name="demo",
                 language="Python",
@@ -38,6 +36,11 @@ class FakeRepositorySearch(RepositorySearchPort):
                 html_url="https://github.com/demo/demo",
             ),
         ]
+
+        return RepositorySearchResult(
+            repositories=repositories,
+            total_count=len(repositories),
+        )
 
 
 def test_http_endpoint_returns_scored_repositories() -> None:
@@ -52,9 +55,7 @@ def test_http_endpoint_returns_scored_repositories() -> None:
 
     app = create_app(
         use_case=use_case,
-        settings=Settings(
-            scoring_strategy="momentum"
-        )
+        settings=Settings()
     )
 
     with TestClient(app) as client:
