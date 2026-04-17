@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 from typing import cast
 
@@ -19,6 +20,8 @@ SCORING_STRATEGIES: dict[ScoringStrategyName, ScoringStrategy] = {
     ScoringStrategyName.BALANCED: BalancedScoringStrategy(),
     ScoringStrategyName.MOMENTUM: MomentumFocusedScoringStrategy(),
 }
+
+logger = logging.getLogger(__name__)
 
 def build_http_client(settings: Settings) -> httpx.AsyncClient:
     headers = {
@@ -58,6 +61,11 @@ def create_lifespan(
 ):
     resolved_settings = settings or get_settings()
 
+    logger.info(
+        "Runtime settings loaded: %s",
+        _format_settings_as_env(resolved_settings),
+    )
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
 
@@ -90,3 +98,11 @@ def get_search_use_case(request: Request) -> SearchRepositoriesUseCase:
 def get_runtime_settings(request: Request) -> Settings:
     app = cast(FastAPI, request.app)
     return cast(Settings, app.state.settings)
+
+def _format_settings_as_env(settings: Settings) -> str:
+    values = settings.model_dump(mode="json", exclude={"github_token"})
+
+    return "\n".join(
+        f"{key.upper()}={value}"
+        for key, value in values.items()
+    )
