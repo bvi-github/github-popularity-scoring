@@ -4,9 +4,23 @@ FastAPI backend service that searches GitHub repositories and returns the most p
 
 This is an assigment for a Backend Coding Challenge for a Senior Python Engineer position.
 
-## Initial assignment
+## Table of Contents
 
-### Project overview
+- [Initial Assignment](#initial-assignment)
+- [What It Does](#what-it-does)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Scoring](#scoring)
+- [API](#api)
+- [Configuration](#configuration)
+- [Local Development](#local-development)
+- [Docker](#docker)
+- [Design Notes](#design-notes)
+- [Known Constraints](#known-constraints)
+
+## Initial Assignment
+
+### Project Overview
 
 The objective of this project is to implement a backend application for scoring repositories on GitHub.
 
