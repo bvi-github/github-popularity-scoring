@@ -13,12 +13,22 @@ class Repository:
     forks: int
     html_url: str
 
+@dataclass
+class RepositorySearchCursor:
+    value: str
+
+@dataclass
+class RepositorySearchResult:
+    repositories: list[Repository]
+    total_count: int
+    next_cursor: RepositorySearchCursor | None = None
 
 @dataclass
 class RepositorySearchCriteria:
     language: str
     created_after: date
-    limit: int = 10
+    repositories_scanned: int = 0
+    cursor: RepositorySearchCursor | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "language", self.language.strip())
@@ -28,3 +38,9 @@ class RepositorySearchCriteria:
 class ScoredRepository:
     repository: Repository
     popularity_score: float
+
+@dataclass
+class ScoringRepositoryResult:
+    repositories: list[ScoredRepository]
+    total_count: int
+    repositories_scanned: int
