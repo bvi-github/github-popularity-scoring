@@ -6,7 +6,7 @@ import httpx
 
 from github_popularity_scoring.domain.entities import (
     Repository,
-    RepositorySearchCriteria,
+    RepositorySearchCriteria, RepositorySearchResult, RepositorySearchCursor,
 )
 from github_popularity_scoring.infrastructure.exceptions import ExternalServiceError
 from github_popularity_scoring.infrastructure.github.dto import (
@@ -16,6 +16,8 @@ from github_popularity_scoring.infrastructure.github.dto import (
 from github_popularity_scoring.infrastructure.github.settings import Settings
 from github_popularity_scoring.service.repositories import RepositorySearchPort
 
+_GITHUB_SEARCH_CAP = 1000
+_REPOS_PER_PAGE = 100
 
 class GitHubRepositorySearchClient(RepositorySearchPort):
     """
@@ -28,23 +30,35 @@ class GitHubRepositorySearchClient(RepositorySearchPort):
 
     async def search_repositories(
         self, criteria: RepositorySearchCriteria
-    ) -> list[Repository]:
+    ) -> RepositorySearchResult:
 
         mapper = GitHubRepositoryMapper
         query_builder = GitHubRepositoryQueryBuilder
 
         query = query_builder.build(criteria)
-        per_page = min(criteria.limit, 100)
 
-        try:
-            response = await self._http_client.get(
-                "/search/repositories",
-                params={
+        search_endpoint = "/search/repositories"
+        endpoint_params = {
                     "q": query,
                     "sort": "stars",
                     "order": "desc",
-                    "per_page": per_page,
-                },
+                    "per_page": _REPOS_PER_PAGE,
+                    "page": 1,
+                }
+
+        if criteria.cursor is not None:
+            search_endpoint = criteria.cursor.value
+            endpoint_params = None
+
+        # TODO: consider rate limits
+        #   Rate limits for /search/repositories:
+        #       - Anonymous: 10 requests/minute
+        #       - with token: 30 requests/minute
+
+        try:
+            response = await self._http_client.get(
+                url=search_endpoint,
+                params=endpoint_params,
             )
             response = response.raise_for_status()
         except httpx.HTTPStatusError as exp:
@@ -57,7 +71,24 @@ class GitHubRepositorySearchClient(RepositorySearchPort):
             ) from exp
 
         payload = GitHubSearchRepositoriesResponseDTO.model_validate(response.json())
-        return [mapper.to_domain(dto) for dto in payload.items]
+        repositories = [mapper.to_domain(dto) for dto in payload.items]
+
+        repositories_scanned = criteria.repositories_scanned + len(repositories)
+        scanned_repo_limit = min(self._settings.scanned_repo_limit, _GITHUB_SEARCH_CAP)
+
+        next_url = response.links.get("next", {}).get("url")
+        next_cursor = None
+
+        if repositories_scanned < scanned_repo_limit and next_url is not None:
+            next_cursor = RepositorySearchCursor(
+                value=next_url
+            )
+
+        return RepositorySearchResult(
+            repositories=repositories,
+            total_count=payload.total_count,
+            next_cursor=next_cursor,
+        )
 
     @staticmethod
     def _build_error_message(response: httpx.Response) -> str:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from functools import lru_cache
-from typing import ClassVar, Literal
+from typing import ClassVar
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     github_api_version: str = "2026-03-10"
     github_token: str | None = None
     github_timeout_seconds: float = 10.0
-    default_result_limit: int = Field(default=10, ge=1, le=100)
-    max_result_limit: int = Field(default=50, ge=1, le=100)
+    scanned_repo_limit: int = Field(default=300, ge=1, le=1000)
+    result_limit: int = Field(default=10, ge=1, le=1000)
     scoring_strategy: ScoringStrategyName = ScoringStrategyName.BALANCED
 
 @lru_cache(maxsize=1)

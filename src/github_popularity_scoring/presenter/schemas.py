@@ -25,9 +25,5 @@ class SearchRepositoriesResponse(BaseModel):
     """
 
     repositories: list[RepositoryPopularityResponse]
-
-
-class SearchRepositoriesRequest(BaseModel):
-    language: str = Field(min_length=1, max_length=100)
-    created_after: date
-    limit: int = Field(default=10, ge=1, le=100)
+    total_count: int
+    repositories_scanned: int
