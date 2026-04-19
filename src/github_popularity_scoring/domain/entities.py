@@ -13,15 +13,18 @@ class Repository:
     forks: int
     html_url: str
 
+
 @dataclass
 class RepositorySearchCursor:
     value: str
+
 
 @dataclass
 class RepositorySearchResult:
     repositories: list[Repository]
     total_count: int
     next_cursor: RepositorySearchCursor | None = None
+
 
 @dataclass
 class RepositorySearchCriteria:
@@ -38,6 +41,7 @@ class RepositorySearchCriteria:
 class ScoredRepository:
     repository: Repository
     popularity_score: float
+
 
 @dataclass
 class ScoringRepositoryResult:

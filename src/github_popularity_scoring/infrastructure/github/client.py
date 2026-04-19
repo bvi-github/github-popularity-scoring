@@ -6,7 +6,9 @@ import httpx
 
 from github_popularity_scoring.domain.entities import (
     Repository,
-    RepositorySearchCriteria, RepositorySearchResult, RepositorySearchCursor,
+    RepositorySearchCriteria,
+    RepositorySearchResult,
+    RepositorySearchCursor,
 )
 from github_popularity_scoring.infrastructure.exceptions import ExternalServiceError
 from github_popularity_scoring.infrastructure.github.dto import (
@@ -18,6 +20,7 @@ from github_popularity_scoring.service.repositories import RepositorySearchPort
 
 _GITHUB_SEARCH_CAP = 1000
 _REPOS_PER_PAGE = 100
+
 
 class GitHubRepositorySearchClient(RepositorySearchPort):
     """
@@ -39,12 +42,12 @@ class GitHubRepositorySearchClient(RepositorySearchPort):
 
         search_endpoint = "/search/repositories"
         endpoint_params = {
-                    "q": query,
-                    "sort": "stars",
-                    "order": "desc",
-                    "per_page": _REPOS_PER_PAGE,
-                    "page": 1,
-                }
+            "q": query,
+            "sort": "stars",
+            "order": "desc",
+            "per_page": _REPOS_PER_PAGE,
+            "page": 1,
+        }
 
         if criteria.cursor is not None:
             search_endpoint = criteria.cursor.value
@@ -80,9 +83,7 @@ class GitHubRepositorySearchClient(RepositorySearchPort):
         next_cursor = None
 
         if repositories_scanned < scanned_repo_limit and next_url is not None:
-            next_cursor = RepositorySearchCursor(
-                value=next_url
-            )
+            next_cursor = RepositorySearchCursor(value=next_url)
 
         return RepositorySearchResult(
             repositories=repositories,

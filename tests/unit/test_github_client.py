@@ -73,7 +73,9 @@ async def test_search_repositories_maps_github_response() -> None:
 
 
 @pytest.mark.asyncio
-async def test_search_repositories_returns_next_cursor_from_github_link_header() -> None:
+async def test_search_repositories_returns_next_cursor_from_github_link_header() -> (
+    None
+):
     next_url = "https://api.github.com/search/repositories?q=demo&page=2"
 
     def handler(_request: httpx.Request) -> httpx.Response:

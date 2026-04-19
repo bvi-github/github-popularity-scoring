@@ -13,7 +13,8 @@ from github_popularity_scoring.infrastructure.exceptions import ExternalServiceE
 from github_popularity_scoring.infrastructure.github.settings import Settings
 from github_popularity_scoring.presenter.dependencies import (
     create_lifespan,
-    get_search_use_case, get_runtime_settings,
+    get_search_use_case,
+    get_runtime_settings,
 )
 from github_popularity_scoring.presenter.schemas import (
     RepositoryPopularityResponse,
@@ -35,12 +36,15 @@ async def get_repository_popularity(
     ],
     language: Annotated[
         str,
-        Query(description="Programming language to search for", min_length=1, max_length=100),
+        Query(
+            description="Programming language to search for",
+            min_length=1,
+            max_length=100,
+        ),
     ],
     use_case: Annotated[SearchRepositoriesUseCase, Depends(get_search_use_case)],
     settings: Annotated[Settings, Depends(get_runtime_settings)],
 ) -> SearchRepositoriesResponse:
-
 
     criteria = RepositorySearchCriteria(
         created_after=created_after,
@@ -78,7 +82,7 @@ async def get_repository_popularity(
 
 def create_app(
     use_case: SearchRepositoriesUseCase | None = None,
-    settings: Settings| None = None,
+    settings: Settings | None = None,
 ) -> FastAPI:
 
     app = FastAPI(

@@ -5,13 +5,16 @@ from typing import Protocol
 
 from github_popularity_scoring.domain.entities import (
     RepositorySearchCriteria,
-    ScoredRepository, RepositorySearchResult, ScoringRepositoryResult,
+    ScoredRepository,
+    RepositorySearchResult,
+    ScoringRepositoryResult,
 )
 from github_popularity_scoring.domain.exceptions import ValidationError
 from github_popularity_scoring.domain.scoring import PopularityScorer
 
 import heapq
 from itertools import count
+
 
 class RepositorySearchPort(Protocol):
     """
@@ -20,7 +23,8 @@ class RepositorySearchPort(Protocol):
     """
 
     async def search_repositories(
-        self, criteria: RepositorySearchCriteria,
+        self,
+        criteria: RepositorySearchCriteria,
     ) -> RepositorySearchResult:
         """
         Return repositories matching the provided criteria.
@@ -42,9 +46,9 @@ class SearchRepositoriesUseCase:
         self._scorer = scorer
 
     async def execute(
-            self,
-            criteria: RepositorySearchCriteria,
-            result_limit: int,
+        self,
+        criteria: RepositorySearchCriteria,
+        result_limit: int,
     ) -> ScoringRepositoryResult:
         language = criteria.language
 
@@ -60,7 +64,6 @@ class SearchRepositoriesUseCase:
         repositories_scanned: int = 0
 
         while True:
-
             search_results = await self._repository_search.search_repositories(criteria)
 
             total_count = max(total_count, search_results.total_count)
@@ -75,9 +78,13 @@ class SearchRepositoriesUseCase:
                 )
 
                 if len(repo_heap) < result_limit:
-                    heapq.heappush(repo_heap, (popularity_score, next(counter), scored_repo))
+                    heapq.heappush(
+                        repo_heap, (popularity_score, next(counter), scored_repo)
+                    )
                 else:
-                    _ = heapq.heappushpop(repo_heap, (popularity_score, next(counter), scored_repo))
+                    _ = heapq.heappushpop(
+                        repo_heap, (popularity_score, next(counter), scored_repo)
+                    )
 
             next_cursor = search_results.next_cursor
             if next_cursor is None:

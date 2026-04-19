@@ -8,12 +8,19 @@ import httpx
 from fastapi import FastAPI, Request
 
 from github_popularity_scoring.domain.enums_ import ScoringStrategyName
-from github_popularity_scoring.domain.scoring import BalancedScoringStrategy, PopularityScorer, ScoringStrategy, \
-    MomentumFocusedScoringStrategy
+from github_popularity_scoring.domain.scoring import (
+    BalancedScoringStrategy,
+    PopularityScorer,
+    ScoringStrategy,
+    MomentumFocusedScoringStrategy,
+)
 from github_popularity_scoring.infrastructure.github.client import (
     GitHubRepositorySearchClient,
 )
-from github_popularity_scoring.infrastructure.github.settings import Settings, get_settings
+from github_popularity_scoring.infrastructure.github.settings import (
+    Settings,
+    get_settings,
+)
 from github_popularity_scoring.service.repositories import SearchRepositoriesUseCase
 
 SCORING_STRATEGIES: dict[ScoringStrategyName, ScoringStrategy] = {
@@ -22,6 +29,7 @@ SCORING_STRATEGIES: dict[ScoringStrategyName, ScoringStrategy] = {
 }
 
 logger = logging.getLogger(__name__)
+
 
 def build_http_client(settings: Settings) -> httpx.AsyncClient:
     headers = {
@@ -39,7 +47,9 @@ def build_http_client(settings: Settings) -> httpx.AsyncClient:
     )
 
 
-def build_search_use_case(http_client: httpx.AsyncClient, settings: Settings) -> SearchRepositoriesUseCase:
+def build_search_use_case(
+    http_client: httpx.AsyncClient, settings: Settings
+) -> SearchRepositoriesUseCase:
 
     repository_search = GitHubRepositorySearchClient(
         http_client=http_client,
@@ -52,8 +62,10 @@ def build_search_use_case(http_client: httpx.AsyncClient, settings: Settings) ->
     )
     return repository_search_use_case
 
+
 def build_scoring_strategy(settings: Settings) -> ScoringStrategy:
     return SCORING_STRATEGIES[settings.scoring_strategy]
+
 
 def create_lifespan(
     use_case: SearchRepositoriesUseCase | None = None,
@@ -95,14 +107,13 @@ def get_search_use_case(request: Request) -> SearchRepositoriesUseCase:
     app = cast(FastAPI, request.app)
     return cast(SearchRepositoriesUseCase, app.state.search_use_case)
 
+
 def get_runtime_settings(request: Request) -> Settings:
     app = cast(FastAPI, request.app)
     return cast(Settings, app.state.settings)
 
+
 def _format_settings_as_env(settings: Settings) -> str:
     values = settings.model_dump(mode="json", exclude={"github_token"})
 
-    return "\n".join(
-        f"{key.upper()}={value}"
-        for key, value in values.items()
-    )
+    return "\n".join(f"{key.upper()}={value}" for key, value in values.items())

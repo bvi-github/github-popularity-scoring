@@ -11,7 +11,10 @@ from github_popularity_scoring.domain.entities import (
 )
 from github_popularity_scoring.domain.exceptions import ValidationError
 from github_popularity_scoring.domain.scoring import PopularityScorer
-from github_popularity_scoring.service.repositories import RepositorySearchPort, SearchRepositoriesUseCase
+from github_popularity_scoring.service.repositories import (
+    RepositorySearchPort,
+    SearchRepositoriesUseCase,
+)
 
 
 class FakeRepositorySearch(RepositorySearchPort):
@@ -104,7 +107,10 @@ async def test_use_case_scores_sorts_and_limits_results() -> None:
         created_after=date(2025, 1, 1),
         language="Python",
     )
-    assert [repo.repository.name for repo in result.repositories] == ["recent-popular", "older"]
+    assert [repo.repository.name for repo in result.repositories] == [
+        "recent-popular",
+        "older",
+    ]
 
 
 @pytest.mark.asyncio
@@ -181,7 +187,9 @@ async def test_use_case_scores_top_results_across_paginated_search() -> None:
 
 
 @pytest.mark.asyncio
-async def test_use_case_returns_all_results_when_limit_exceeds_available_repositories() -> None:
+async def test_use_case_returns_all_results_when_limit_exceeds_available_repositories() -> (
+    None
+):
     now = datetime(2026, 1, 1, tzinfo=timezone.utc)
     repository_search = FakeRepositorySearch(
         [

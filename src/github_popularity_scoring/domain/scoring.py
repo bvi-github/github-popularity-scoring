@@ -22,6 +22,7 @@ class ScoringStrategy(Protocol):
         """
         ...
 
+
 class BalancedScoringStrategy(ScoringStrategy):
     """
     Default strategy with balanced weights for stars, forks, and recency.
@@ -44,6 +45,7 @@ class BalancedScoringStrategy(ScoringStrategy):
 
         return round(stars_component + forks_component + recency_component, 2)
 
+
 class MomentumFocusedScoringStrategy(ScoringStrategy):
     """
     Momentum-focused strategy that favors repositories which are both popular and recently active.
@@ -56,6 +58,7 @@ class MomentumFocusedScoringStrategy(ScoringStrategy):
         - recent updates have a stronger effect because it affects the whole score
         - power-law decay - more aggressive penalization at first.
     """
+
     def score(self, repository: Repository, now: datetime) -> float:
         days_since_update = max((now - repository.updated_at).days, 0)
 
@@ -63,7 +66,7 @@ class MomentumFocusedScoringStrategy(ScoringStrategy):
         forks_component = cast(float, log1p(max(repository.forks, 0)) ** 0.4)
         recency_component = cast(float, (1 + days_since_update) ** 0.5)
 
-        return round(stars_component * forks_component/recency_component, 2)
+        return round(stars_component * forks_component / recency_component, 2)
 
 
 class PopularityScorer:
@@ -74,10 +77,11 @@ class PopularityScorer:
     _strategy: ScoringStrategy
     _now_provider: Callable[[], datetime]
 
-    def __init__(self,
-                 strategy: ScoringStrategy | None = None,
-                 now_provider: Callable[[], datetime] | None = None,
-                 ) -> None:
+    def __init__(
+        self,
+        strategy: ScoringStrategy | None = None,
+        now_provider: Callable[[], datetime] | None = None,
+    ) -> None:
         self._strategy = strategy or BalancedScoringStrategy()
         self._now_provider = now_provider or (lambda: datetime.now(timezone.utc))
 

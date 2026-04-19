@@ -4,7 +4,8 @@ from fastapi.testclient import TestClient
 
 from github_popularity_scoring.domain.entities import (
     Repository,
-    RepositorySearchCriteria, RepositorySearchResult,
+    RepositorySearchCriteria,
+    RepositorySearchResult,
 )
 from github_popularity_scoring.domain.scoring import PopularityScorer
 from github_popularity_scoring.infrastructure.github.settings import Settings
@@ -53,10 +54,7 @@ def test_http_endpoint_returns_scored_repositories() -> None:
         ),
     )
 
-    app = create_app(
-        use_case=use_case,
-        settings=Settings()
-    )
+    app = create_app(use_case=use_case, settings=Settings())
 
     with TestClient(app) as client:
         response = client.get(

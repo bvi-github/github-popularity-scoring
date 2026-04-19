@@ -10,8 +10,8 @@ from github_popularity_scoring.domain.enums_ import ScoringStrategyName
 
 class Settings(BaseSettings):
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
-        env_file='.env',
-        extra='ignore',
+        env_file=".env",
+        extra="ignore",
     )
 
     github_api_base_url: str = "https://api.github.com"
@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     scanned_repo_limit: int = Field(default=300, ge=1, le=1000)
     result_limit: int = Field(default=10, ge=1, le=1000)
     scoring_strategy: ScoringStrategyName = ScoringStrategyName.BALANCED
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
