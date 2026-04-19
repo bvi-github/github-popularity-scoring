@@ -249,10 +249,12 @@ docker run --rm -p 8000:8000 github-popularity-scoring
   - 10 requests/minute anonymous
   - 30 requests/minute with token
 
-### Further improvements
+### Further Improvements
 
-- Implement rate-limit backoff and retry behavior using header's Retry-After / X-RateLimit-Reset when GitHub returns 403 or 429
-- Improve scoring computation by fetching repositories several times, each time sorted by different field,
-deduplicate results by repo ID, then score the union.
-- Further improvement of scoring: separate background service scrapes results into own store;
-score is computed locally; the API queries local dataset.
+- Implement rate-limit backoff and retry behavior using the `Retry-After` / `X-RateLimit-Reset` headers when GitHub returns 403 or 429.
+- Improve scoring computation by fetching repositories multiple times, each sorted by a different field; deduplicate results by repository ID, then score the combined set.
+- Further improve scoring by introducing a separate background service that scrapes results into its own store; compute scores locally and have the API query the local dataset.
+- Add structured logging.
+- Cache popular queries using in-memory TTL caching or a separate Redis service.
+- Add metrics such as request latency, error counts, and rate-limit errors.
+- Add `/healthz` / `/livez` and `/readyz` endpoints for containerization.
